@@ -106,7 +106,7 @@
         } else {
             A = text
                 .split("\n")
-                .map((r) => r.split(RE_SEPARATOR).map(parseFloat));
+                .map((r) => r.split(RE_SEPARATOR).map(x => parseFloat(x)));
         }
         let M: Matrix;
         try {
@@ -133,9 +133,9 @@
                 return "Syntax error in specification of automorphism";
             }
         } else {
-            A = text.split(RE_SEPARATOR).map(parseInt);
+            A = text.split(RE_SEPARATOR).map(x => parseInt(x))
         }
-        if (A.length === 0 || A.indexOf(NaN) !== -1) {
+        if (A.length === 0 || A.includes(NaN)) {
             return "Syntax error in specification of automorphism";
         }
         console.log(A);
@@ -153,22 +153,30 @@
     </select>
 
     <!-- Possible feature: Take URL inputs -->
+
+    <p>
+    Provide a graph by giving a list or set of its edges:
     <textarea
-        placeholder="Specify a graph as a list or set of edges. Example format:&#10;{`{{1, 2}, {2, 3}, {3, 1}}`}"
+        placeholder=" Example format:&#10;{`{{1, 2}, {2, 3}, {3, 1}}`}"
         on:input={input_graph}
         class={graph_ok ? "ok" : "not-ok"}
         style="min-height: 6em;"
     />
+    </p>
 
-    <textarea
-        placeholder="Give a 3D embedding for the vertices of the graph as an 'n x 3' matrix. Example format:&#10;{`[[0.5, 0.5, 1], [-0.5, 0.5, 1], [0, -0.5, 1]]`}"
-        on:input={input_matrix}
-        class={graph_ok ? "ok" : "not-ok"}
-        style="min-height: 6em;"
-    />
+    <p>
+        Give a 3D embedding for the vertices of the graph as a matrix with n rows and 3 columns:
+        <textarea
+            placeholder=" Example format: {`[[0.5, 0.5, 1], [-0.5, 0.5, 1], [0, -0.5, 1]]`}"
+            on:input={input_matrix}
+            class={graph_ok ? "ok" : "not-ok"}
+            style="min-height: 6em;"
+        />
+    </p>
 
+    Give an automorphism of the graph as a list
     <textarea
-        placeholder="Give an automorphism of the graph. Example format: [2, 3, 1]"
+        placeholder="Example format: [2, 3, 1]"
         on:input={input_permutation}
     />
 
@@ -183,21 +191,32 @@
 
 <div>
     <h2>Usage</h2>
+
+    <p>
+        The labelling of graph vertices is assumed to be one-indexed, so that the vertex set must consist of integers  &lbrace;1  2, ..., n&rbrace;. 
+    </p>
+
     <!-- More detail -->
     Accepted formats for the embedding matrix are:
     <ul>
         <li>An array of arrays (JSON)</li>
         <li>
             A line/space delimited file (as produced by <code>writedlm</code>),
-            where each line contains a row of the matrix and columns are
+            where each line contains a row of the matrix, within which the columns/entries are
             separated by spaces.
         </li>
     </ul>
-    The view area of the canvas is [TODO]. An automorphism should be specified as
-    a space-separated list of 1-indexed vertex numbers (agreeing with the given edge
-    set, and row numbers of the embedding matrix). Each vertex should appear exactly
-    once so that it defines a permutation. The orthogonal interpolation modes probably
-    only work for even permutations.
+    The canvas is then determined by a perspective projection through a pinhole camera located at (0, 0, -0.2) pointing towards the origin so that [-1, 1] x [-1, 1] x &lbrace;0&rbrace; spans the viewport. 
+    
+    <p>
+    An automorphism should be specified as a list 'L' of n distinct vertex numbers (agreeing with the given edge
+    set and row numbers of the embedding matrix) that defines a permutation sending vertex i to vertex L[i]. The list can be formatted as either a space-separated sequence of integers or as a JSON array. 
+    </p>
+
+    <strong>Notes: </strong> 
+    <em><ul>
+        <li> The orthogonal interpolation modes probably only work for even permutations. </li>
+    </ul></em>
 </div>
 
 <style>

@@ -91,10 +91,15 @@
         }
     }
 
-    // let morber = Cliff.morb(DisplayGraph.nv, Permutation)
-    let morber = Graphs.interp(
-        Interpolate === null ? { spec: "noop" } : Interpolate
-    );
+    let morber;
+    try {
+        morber = Graphs.interp(
+            Interpolate === null ? { spec: "noop" } : Interpolate
+        );
+    } catch (e) {
+        console.error(e);
+        morber = Graphs.interp({ spec: "noop" });
+    }
 
     function at_permute_time(t: number) {
         let m1 = morber(M.getColumnVector(0), t);

@@ -14,8 +14,12 @@ export class Projective {
         this.proj_locations = Matrix.zeros(n, 3)
         this.transform = Matrix.identity(4, 4)
 
+        // Maybe make this configurable at some point
+        let z_offset = 0.2
+        this.fov = 2 * Math.atan(0.5 / z_offset)
+
         // translate z upwards a bit to get in frame properly
-        this.transform.set(2, 3, 0.2)
+        this.transform.set(2, 3, z_offset)
     }
 
     real_matrix() {
