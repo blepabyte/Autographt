@@ -19,6 +19,11 @@
 
     // Elements
     let stderr_div;
+    let textarea_inputs = {
+        graph: "",
+        matrix: "",
+        permutation: ""
+    };
 
     let InputState = {
         G: null,
@@ -28,7 +33,7 @@
     };
 
     function validate_and_push_state() {
-        console.log("VVV");
+        console.info("Trying to validate given graph inputs...");
         // If the permutation is null, then animation will just be disabled
         if (InputState.G === null || InputState.M === null)
             return "Both graph and embedding must be specified";
@@ -84,7 +89,7 @@
         stderr_div.innerText = validate_and_push_state();
     };
 
-    let input_graph = handler_for_textarea((text: string) => {
+    let parse_graph = ((text: string) => {
         let text_as_edge_pairs = text.replaceAll("{", "[").replaceAll("}", "]");
         let E;
         try {
@@ -95,7 +100,7 @@
         InputState.G = E;
     });
 
-    let input_matrix = handler_for_textarea((text: string) => {
+    let parse_matrix = ((text: string) => {
         let A: Array<Array<number>>;
         if (text.startsWith("[")) {
             try {
@@ -122,7 +127,7 @@
         InputState.M = M;
     });
 
-    let input_permutation = handler_for_textarea((text: string) => {
+    let parse_permutation = ((text: string) => {
         if (text.length === 0) return;
 
         let A: Array<number>;
@@ -142,6 +147,29 @@
 
         InputState.P = A;
     });
+
+    interface LoadRemote {
+        graph: Array<[number, number]>
+        matrix: Array<Array<number>>
+        permutation: Array<number>
+    }
+
+    // TODO: Eventually make part of UI
+    async function from_url(url: string) {
+        let {graph, matrix, permutation}: LoadRemote = await (await fetch(url)).json()
+        let graph_str = JSON.stringify(graph)
+        let matrix_str = JSON.stringify(matrix)
+        let perm_str = JSON.stringify(permutation)
+
+        textarea_inputs.graph = graph_str
+        textarea_inputs.matrix = matrix_str
+        textarea_inputs.permutation = perm_str
+
+        parse_graph(graph_str)
+        parse_matrix(matrix_str)
+        parse_permutation(perm_str)
+    }
+    window.load_from_url = from_url // For console use
 </script>
 
 <div>
@@ -158,9 +186,10 @@
     Provide a graph by giving a list or set of its edges:
     <textarea
         placeholder=" Example format:&#10;{`{{1, 2}, {2, 3}, {3, 1}}`}"
-        on:input={input_graph}
+        on:input={handler_for_textarea(parse_graph)}
         class={graph_ok ? "ok" : "not-ok"}
         style="min-height: 6em;"
+        bind:value={textarea_inputs.graph}
     />
     </p>
 
@@ -168,16 +197,18 @@
         Give a 3D embedding for the vertices of the graph as a matrix with n rows and 3 columns:
         <textarea
             placeholder=" Example format: {`[[0.5, 0.5, 1], [-0.5, 0.5, 1], [0, -0.5, 1]]`}"
-            on:input={input_matrix}
+            on:input={handler_for_textarea(parse_matrix)}
             class={graph_ok ? "ok" : "not-ok"}
             style="min-height: 6em;"
+            bind:value={textarea_inputs.matrix}
         />
     </p>
 
-    Give an automorphism of the graph as a list
+    Give an automorphism of the graph as a list:
     <textarea
         placeholder="Example format: [2, 3, 1]"
-        on:input={input_permutation}
+        on:input={handler_for_textarea(parse_permutation)}
+        bind:value={textarea_inputs.permutation}
     />
 
     <!-- TODO: take a fixed input file path? -->
@@ -206,16 +237,16 @@
             separated by spaces.
         </li>
     </ul>
-    The canvas is then determined by a perspective projection through a pinhole camera located at (0, 0, -0.2) pointing towards the origin so that [-1, 1] x [-1, 1] x &lbrace;0&rbrace; spans the viewport. 
+    The canvas is then determined by a perspective projection through a pinhole camera located at (0, 0, -0.2) pointing towards the origin so that [-0.2, 0.2] x [-0.2, 0.2] x &lbrace;0&rbrace; spans the viewport. 
     
     <p>
     An automorphism should be specified as a list 'L' of n distinct vertex numbers (agreeing with the given edge
     set and row numbers of the embedding matrix) that defines a permutation sending vertex i to vertex L[i]. The list can be formatted as either a space-separated sequence of integers or as a JSON array. 
     </p>
 
-    <strong>Notes: </strong> 
+    <em>Notes: </em> 
     <em><ul>
-        <li> The orthogonal interpolation modes probably only work for even permutations. </li>
+        <li> The orthogonal interpolation modes only work for even permutations. </li>
     </ul></em>
 </div>
 

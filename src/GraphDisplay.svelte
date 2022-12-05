@@ -65,7 +65,7 @@
             let [bx, by, bd] = P.at(b);
             edge_svgs.push(
                 svgjs.line().plot(ax, ay, bx, by).stroke({
-                    width: 0.01,
+                    width: 0.007,
                     color: "#000000",
                 })
             );
@@ -76,17 +76,22 @@
 
     function draw_update() {
         // Assumes vertices, edges, stored in a fixed order
+
+        // TODO: use opacity instead of colour
+
         let G = DisplayGraph;
         for (let v = 0; v < G.nv; v++) {
             let [cx, cy, depth] = P.at(v);
-            vertex_svgs[v].attr({ cx, cy });
+            vertex_svgs[v].attr({ cx, cy, opacity: P.opacity(v) });
         }
 
         let e = 0;
         for (let [a, b] of G.edges) {
             let [ax, ay, ad] = P.at(a);
             let [bx, by, bd] = P.at(b);
-            edge_svgs[e].plot(ax, ay, bx, by);
+            edge_svgs[e].plot(ax, ay, bx, by).attr({
+                opacity: Math.max(P.opacity(a), P.opacity(b))
+            });
             e++;
         }
     }
