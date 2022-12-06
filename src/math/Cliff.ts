@@ -6,9 +6,9 @@ function slerp(a: Matrix, b: Matrix, t: number) {
     let omega = Math.acos(a.dot(b))
     return a.clone().mul(
         Math.sin((1 - t) * omega) / Math.sin(omega)
-        ).add(b.clone().mul(
+    ).add(b.clone().mul(
         Math.sin(t * omega) / Math.sin(omega)
-        ))
+    ))
 }
 
 
@@ -53,6 +53,42 @@ export function naive_transposition_sequence(permutation: Array<number>) {
     return transpositions
 }
 
+function expand_cycle(C) {
+    let ts = []
+    for (let i = 0; i < C.length - 1; i++) {
+        ts.push([C[i], C[i + 1]])
+    }
+    return ts.reverse()
+}
+
+/*
+Sequence of transpositions equivalent to `permutation`. To be applied left to right. 
+*/
+export function cycle_transposition_sequence(permutation: Array<number>) {
+    let cycles = []
+    let left = new Set(permutation)
+
+    while (left.size > 0) {
+        // couldn't they have defined a .pop()?
+        let x = left.values().next().value
+        left.delete(x)
+        let y = permutation[x]
+        let C = [x]
+
+        // fixed points ignored
+        if (y === x) continue
+
+        while (y !== x && left.size > 0) {
+            C.push(y)
+            if (!left.delete(y)) throw "Not permutation"
+            y = permutation[y]
+        }
+        cycles.push(C)
+    }
+
+    return cycles.flatMap(expand_cycle)
+}
+
 
 /*
 interpolates (pairwise) the given transposition sequence
@@ -75,9 +111,9 @@ export function morb(n: number, transpositions: Array<[number, number]>) {
 
             apply_cliff(t1, v0)
 
-            apply_cliff(slerp(t1, t2, t/2) , v0)
-            apply_cliff(slerp(t2, t1, t/2) , v0)
-            
+            apply_cliff(slerp(t1, t2, t / 2), v0)
+            apply_cliff(slerp(t2, t1, t / 2), v0)
+
             apply_cliff(t2, v0)
         }
         return v0

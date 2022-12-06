@@ -55,9 +55,7 @@
             positions: InputState.M,
         };
 
-        // TODO: Maybe further validation of the permutation?
-
-        if (InputState.P === null || InputState.P.length !== n) {
+        if (InputState.P === null || InputState.P.length !== n || (new Set(InputState.P)).size !== n) {
             InTerpolate = {
                 spec: "noop",
             };
@@ -171,7 +169,7 @@
         parse_graph(graph_str)
         parse_matrix(matrix_str)
         parse_permutation(perm_str)
-        validate_and_push_state()
+        write_stderr(validate_and_push_state())
     }
     window.load_from_url = from_url // For console use: beware of CORS on server backend.
 </script>
@@ -180,7 +178,8 @@
     Interpolation method:
     <select bind:value={InputState.S} on:change={input_select}>
         <option value="linear"> Linear </option>
-        <option value="slerp-naive"> Orthogonal (naive) </option>
+        <option value="slerp"> Orthogonal </option>
+        <!-- <option value="slerp-naive"> Orthogonal (naive) </option> -->
         <!-- <option value="slerp-transposition-seq"> Orthogonal (transposition sequence) </option> -->
     </select>
 
@@ -222,7 +221,7 @@
     <!-- Message output -->
 </div>
 
-<button> Load example graph </button>
+<!-- <button> Load example graph </button> -->
 <button on:click={() => from_url("https://graph.blepabyte.me")}> Load random* graph </button>
 
 <div>

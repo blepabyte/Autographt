@@ -1,5 +1,5 @@
 import * as Cliff from "./Cliff"
-import {Matrix} from "ml-matrix"
+import { Matrix } from "ml-matrix"
 
 // Vertices must be zero-indexed
 export interface Graph {
@@ -25,7 +25,7 @@ export function default_graph(): Graph {
     }
 }
 
-export type INTERSPEC = "linear" | "slerp-naive" | "slerp-transposition-seq" | "noop"
+export type INTERSPEC = "linear" | "slerp" | "slerp-naive" | "slerp-transposition-seq" | "noop"
 
 /*
 The necessary information to animate a graph automorphism
@@ -38,13 +38,19 @@ export interface Interpolation {
 }
 
 export function interp(I: Interpolation): ((v: Matrix, t: number) => Matrix) {
-    if (I.spec === "slerp-naive") {
+    if (I.spec === "slerp") {
+        return Cliff.morb(
+            I.permutation.length,
+            Cliff.cycle_transposition_sequence(I.permutation)
+        )
+    } else if (I.spec === "slerp-naive") {
         return Cliff.morb(
             I.permutation.length,
             Cliff.naive_transposition_sequence(I.permutation)
         )
 
     } else if (I.spec === "slerp-transposition-seq") {
+        // Give a custom sequence of transpositions for orthogonal interpolation
         return Cliff.morb(I.n, I.transposition)
 
     } else if (I.spec === "linear") {
