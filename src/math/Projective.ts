@@ -94,7 +94,7 @@ export class Projective {
         if (depth < 0) return 0
 
         // return 
-        return 1 - Math.max(0, Math.min(0.5, (depth - this.dmin) / (this.dmax - this.dmin)))
+        return 1 - Math.max(0, Math.min(0.6, (depth - this.dmin) / (this.dmax - this.dmin)))
     }
 
     at(i: number) {

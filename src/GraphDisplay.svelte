@@ -53,22 +53,24 @@
 
     function draw_first_time() {
         let G = DisplayGraph;
-        // put vertices in a place, and let caller move them around
-        for (let v = 0; v < G.nv; v++) {
-            let [cx, cy, depth] = P.at(v);
-            vertex_svgs.push(
-                svgjs.circle().attr({ cx, cy, fill: "#000", r: 0.02 })
-            );
-        }
 
         for (let [a, b] of G.edges) {
             let [ax, ay, ad] = P.at(a);
             let [bx, by, bd] = P.at(b);
+
             edge_svgs.push(
                 svgjs.line().plot(ax, ay, bx, by).stroke({
-                    width: 0.007,
+                    width: 0.005,
                     color: "#000000",
                 })
+            );
+        }
+
+        // vertices on top of edges makes more sense
+        for (let v = 0; v < G.nv; v++) {
+            let [cx, cy, depth] = P.at(v);
+            vertex_svgs.push(
+                svgjs.circle().attr({ cx, cy, fill: "#000", r: 0.015 })
             );
         }
 
@@ -81,19 +83,28 @@
         // TODO: use opacity instead of colour
 
         let G = DisplayGraph;
-        for (let v = 0; v < G.nv; v++) {
-            let [cx, cy, depth] = P.at(v);
-            vertex_svgs[v].attr({ cx, cy, opacity: P.opacity(v) });
-        }
 
         let e = 0;
         for (let [a, b] of G.edges) {
             let [ax, ay, ad] = P.at(a);
             let [bx, by, bd] = P.at(b);
-            edge_svgs[e].plot(ax, ay, bx, by).attr({
-                opacity: Math.max(P.opacity(a), P.opacity(b))
+
+            let color = Math.round(
+                (1 - Math.max(P.opacity(a), P.opacity(b))) * 255
+            )
+
+            edge_svgs[e].plot(ax, ay, bx, by).stroke({
+                // color: `rgb(${color}, ${color}, ${color})`,
+                opacity: Math.min(P.opacity(a), P.opacity(b))
             });
             e++;
+        }
+
+        for (let v = 0; v < G.nv; v++) {
+            let [cx, cy, depth] = P.at(v);
+            vertex_svgs[v].attr({ cx, cy, 
+                opacity: P.opacity(v)
+            });
         }
     }
 
@@ -116,8 +127,9 @@
             morber(M.getColumnVector(1), t),
             morber(M.getColumnVector(2), t)
         );
-
-        draw_update();
+        
+        window.requestAnimationFrame(draw_update);
+        // draw_update();
     }
     // TODO: animation component, somehow handle state in a "not awful" way
     $: ready ? at_permute_time(permutation_t / 100) : null;

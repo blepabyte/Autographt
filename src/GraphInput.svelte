@@ -33,7 +33,7 @@
         G: null,
         M: null,
         P: null,
-        S: "linear",
+        S: "slerp",
     };
 
     function validate_and_push_state() {
@@ -157,7 +157,15 @@
 
     // TODO: Eventually make part of UI
     async function from_url(url: string) {
-        let {graph, matrix, permutation}: LoadRemote = await (await fetch(url)).json()
+        let LR
+        try {
+            LR = await (await fetch(url)).json()
+        } catch (e) {
+            console.error(e)
+            write_stderr("The server is down! Check back later or contact the maintainer.")
+            return
+        }
+        let {graph, matrix, permutation}: LoadRemote = LR
         let graph_str = JSON.stringify(graph)
         let matrix_str = JSON.stringify(matrix)
         let perm_str = JSON.stringify(permutation)
