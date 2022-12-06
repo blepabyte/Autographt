@@ -7,6 +7,8 @@
     let P;
     let G;
 
+    let GraphInputComponent;
+
     async function fetch_json(url) {
         let r = await fetch(url);
         let j = await r.json();
@@ -22,6 +24,9 @@
             positions: new Matrix(r.positions).transpose(),
             edges: r.edges.map((e) => [e[0] - 1, e[1] - 1]),
         };
+
+        // Inconsistent scale between data sources. Eventually fix somewhere. 
+        G.positions.mul(2);
 
         let naive_seq = {
             spec: "linear",
@@ -53,6 +58,7 @@
                     <GraphDisplay
                         DisplayGraph={G}
                         Interpolate={P}
+                        InputComponent={GraphInputComponent}                        
                     />
                 <!-- </div> -->
             {/key}
@@ -63,7 +69,7 @@
         <h2>Graph automorphism animator</h2>
 
         <div class="graph-input">
-            <GraphInput bind:InGraph={G} bind:InTerpolate={P} />
+            <GraphInput bind:this={GraphInputComponent} bind:InGraph={G} bind:InTerpolate={P} />
         </div>
 
         <p class="read-the-docs">~2022</p>

@@ -19,7 +19,7 @@ export class Projective {
         this.transform = Matrix.identity(4, 4)
 
         // Maybe make this configurable at some point
-        this.z_offset = 0.2
+        this.z_offset = 0.4
         this.fov = 2 * Math.atan(0.5 / this.z_offset)
 
         this.dmin = 0

@@ -3,6 +3,8 @@
 
     export let DisplayGraph: Graphs.Graph;
     export let Interpolate: Graphs.Interpolation = null;
+    export let InputComponent;
+
     export let playing = true;
 
     import { onMount, onDestroy } from "svelte";
@@ -103,6 +105,7 @@
         );
     } catch (e) {
         console.error(e);
+        InputComponent.write_stderr("Interpolation failed. Probable cause: the given permutation is not even.")
         morber = Graphs.interp({ spec: "noop" });
     }
 

@@ -25,6 +25,10 @@
         permutation: ""
     };
 
+    export function write_stderr(msg: string) {
+        stderr_div.innerHTML = msg
+    }
+
     let InputState = {
         G: null,
         M: null,
@@ -143,7 +147,6 @@
         if (A.length === 0 || A.includes(NaN)) {
             return "Syntax error in specification of automorphism";
         }
-        console.log(A);
 
         InputState.P = A;
     });
@@ -168,8 +171,9 @@
         parse_graph(graph_str)
         parse_matrix(matrix_str)
         parse_permutation(perm_str)
+        validate_and_push_state()
     }
-    window.load_from_url = from_url // For console use
+    window.load_from_url = from_url // For console use: beware of CORS on server backend.
 </script>
 
 <div>
@@ -185,7 +189,7 @@
     <p>
     Provide a graph by giving a list or set of its edges:
     <textarea
-        placeholder=" Example format:&#10;{`{{1, 2}, {2, 3}, {3, 1}}`}"
+        placeholder="Example format:&#10;{`{{1, 2}, {2, 3}, {3, 1}}`}"
         on:input={handler_for_textarea(parse_graph)}
         class={graph_ok ? "ok" : "not-ok"}
         style="min-height: 6em;"
@@ -196,7 +200,7 @@
     <p>
         Give a 3D embedding for the vertices of the graph as a matrix with n rows and 3 columns:
         <textarea
-            placeholder=" Example format: {`[[0.5, 0.5, 1], [-0.5, 0.5, 1], [0, -0.5, 1]]`}"
+            placeholder="Example format: {`[[0.5, 0.5, 1], [-0.5, 0.5, 1], [0, -0.5, 1]]`}"
             on:input={handler_for_textarea(parse_matrix)}
             class={graph_ok ? "ok" : "not-ok"}
             style="min-height: 6em;"
@@ -204,7 +208,7 @@
         />
     </p>
 
-    Give an automorphism of the graph as a list:
+    Give an automorphism of the graph as an ordered list (permutation) of vertices:
     <textarea
         placeholder="Example format: [2, 3, 1]"
         on:input={handler_for_textarea(parse_permutation)}
@@ -219,6 +223,7 @@
 </div>
 
 <button> Load example graph </button>
+<button on:click={() => from_url("https://graph.blepabyte.me")}> Load random* graph </button>
 
 <div>
     <h2>Usage</h2>
@@ -232,7 +237,7 @@
     <ul>
         <li>An array of arrays (JSON)</li>
         <li>
-            A line/space delimited file (as produced by <code>writedlm</code>),
+            Line/space delimited (as produced by <code>writedlm</code>),
             where each line contains a row of the matrix, within which the columns/entries are
             separated by spaces.
         </li>
@@ -247,6 +252,7 @@
     <em>Notes: </em> 
     <em><ul>
         <li> The orthogonal interpolation modes only work for even permutations. </li>
+        <li> *A random 4-valent arc-transitive graph on &le;108 vertices is chosen from [REF], along with a random (even) element of its automorphism group. </li>
     </ul></em>
 </div>
 
