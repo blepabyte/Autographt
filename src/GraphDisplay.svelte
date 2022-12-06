@@ -21,8 +21,7 @@
     //
     let svgjs: Svg; // view area: [-1, 1] x [-1, 1]
     let P = new Projective(DisplayGraph.nv);
-    // P.set_real(DisplayGraph.positions)
-    P.set_positions(DisplayGraph.positions);
+    P.set_positions(DisplayGraph.positions.clone());
 
     let M = P.real_matrix();
 
