@@ -12,7 +12,7 @@
     import { SVG, type Svg } from "@svgdotjs/svg.js";
     import { Matrix } from "ml-matrix";
 
-    import { Projective } from "./math/Projective";
+    import { Projective, RotationView } from "./math/Projective";
 
     // UI BINDS
     let permutation_t = 0;
@@ -22,6 +22,8 @@
     let svgjs: Svg; // view area: [-1, 1] x [-1, 1]
     let P = new Projective(DisplayGraph.nv);
     P.set_positions(DisplayGraph.positions.clone());
+
+    let R: RotationView;
 
     let M = P.real_matrix();
 
@@ -45,7 +47,12 @@
 
         draw_first_time();
 
-        // $: at_permute_time(permutation_t / 100)
+        R = new RotationView(svgjs.node)
+        let bf = P.create_rotation_binding()
+        R.set_callback(M => {
+            bf(M)
+            please_update()
+        })
     });
     onDestroy(() => {
         clearInterval(ticker);
@@ -79,9 +86,6 @@
 
     function draw_update() {
         // Assumes vertices, edges, stored in a fixed order
-
-        // TODO: use opacity instead of colour
-
         let G = DisplayGraph;
 
         let e = 0;
@@ -93,6 +97,7 @@
                 (1 - Math.max(P.opacity(a), P.opacity(b))) * 255
             )
 
+            // would using solid colour + blending mode be more performant than opacity?
             edge_svgs[e].plot(ax, ay, bx, by).stroke({
                 // color: `rgb(${color}, ${color}, ${color})`,
                 opacity: Math.min(P.opacity(a), P.opacity(b))
@@ -106,6 +111,10 @@
                 opacity: P.opacity(v)
             });
         }
+    }
+
+    function please_update() {
+        window.requestAnimationFrame(draw_update);
     }
 
     let morber;
@@ -127,9 +136,7 @@
             morber(M.getColumnVector(1), t),
             morber(M.getColumnVector(2), t)
         );
-        
-        window.requestAnimationFrame(draw_update);
-        // draw_update();
+        please_update();
     }
     // TODO: animation component, somehow handle state in a "not awful" way
     $: ready ? at_permute_time(permutation_t / 100) : null;

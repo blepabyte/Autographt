@@ -5,7 +5,8 @@ export class Projective {
     n: number
     real_locations: Matrix // [x, y, z]
     proj_locations: Matrix // [a, b, depth] relative to camera
-    transform: Matrix // 4x4 model transform: goes into...
+    transform: Matrix // 4x4 model transform:
+    rotate: Matrix // will someday implement transformations properly. that day is not today. 
     up_to_date: boolean
 
     z_offset: number
@@ -17,6 +18,7 @@ export class Projective {
         this.real_locations = Matrix.zeros(n, 3)
         this.proj_locations = Matrix.zeros(n, 3)
         this.transform = Matrix.identity(4, 4)
+        this.rotate = Matrix.identity(4, 4)
 
         // Maybe make this configurable at some point
         this.z_offset = 0.4
@@ -27,6 +29,13 @@ export class Projective {
 
         // translate z upwards a bit to get in frame properly
         this.transform.set(2, 3, this.z_offset)
+    }
+
+    create_rotation_binding() {
+        return (R: Matrix) => {
+            this.rotate = R
+            this.up_to_date = false
+        }
     }
 
     real_matrix() {
@@ -64,7 +73,7 @@ export class Projective {
         this.dmin = Infinity
         this.dmax = -Infinity
         for (let i = 0; i < this.n; i++) {
-            let hom_vec = this.transform.mmul(
+            let hom_vec = (this.transform.mmul(this.rotate)).mmul(
                 Matrix.from1DArray(4, 1, [...this.real_locations.getRow(i), 1])
             )
 
@@ -121,79 +130,74 @@ const ROT_YZ = theta => new Matrix([
     [0, 0, 0, 1],
 ])
 
-/*
-class RotationView {
-    el: SVGAElement
+
+export class RotationView {
+    groot: SVGSVGElement
     matrix: Matrix
     state: any
     change_callback: (R: Matrix) => void
+    MOUSE_SCALE_FACTOR: number
 
-    constructor (el: SVGAElement) {
-        this.el = el
-        this.matrix = Matrix.eye(3)
+    constructor (groot: SVGSVGElement) {
+        this.groot = groot
+        this.matrix = Matrix.eye(4)
 
         // UI state
         this.state = {
-            mouse_down: true
+            mouse_down: false
         }
+        this.MOUSE_SCALE_FACTOR = 3
 
         this.change_callback = (_) => {}
 
-        this.el.addEventListener("pointerdown", this.pointerdown.bind(this))
-        this.el.addEventListener("pointerup", )
-        this.el.addEventListener("pointermove", )
-        this.el.addEventListener("pointercancel", )
-
-
-        
+        this.groot.addEventListener("pointerdown", this.pointerdown.bind(this))
+        this.groot.addEventListener("pointerup", this.pointerup.bind(this))
+        this.groot.addEventListener("pointermove", this.pointermove.bind(this))
+        this.groot.addEventListener("pointercancel", this.pointercancel.bind(this))
     }
 
     reset() {
-        this.matrix = Matrix.eye(3)
+        this.matrix = Matrix.eye(4)
     }
 
-    // On graph reload everything is destroyed, so nothing to do here
-    // destroy() {
-        
-    // }
+    set_callback(f: (R: Matrix) => void) {
+        this.change_callback = f
+    }
 
-    setCallback(f) {
-
+    rotate(ax1: number, ax2: number) {
+        this.matrix = ROT_YZ(ax2).mmul(ROT_XZ(ax1)).mmul(this.matrix)
+        this.change_callback(this.matrix)
     }
 
     pointerdown(ev: PointerEvent) {
-        this // wtf is this
+        this.groot.setPointerCapture(ev.pointerId)
+        this.state.mouse_down = true
+        this.state.last_x = ev.screenX
+        this.state.last_y = ev.screenY
+    }
+
+    pointerup(ev: PointerEvent) {
+        this.state.mouse_down = false
+        this.groot.releasePointerCapture(ev.pointerId)
+// }
+    }
+
+    pointermove(ev: PointerEvent) {
+        if (!this.state.mouse_down) return
+
+        // calculate manually instead of using `ev.movement[XY]` due to what appears to be Firefox bug on touchscreen devices
+        let dx = ev.screenX - this.state.last_x
+        let dy = ev.screenY - this.state.last_y
+
+        let scale = 1000
+        this.rotate(dx / scale * this.MOUSE_SCALE_FACTOR, dy / scale * this.MOUSE_SCALE_FACTOR)
+        this.state.last_x = ev.screenX
+        this.state.last_y = ev.screenY
+    }
+
+    pointercancel(ev: PointerEvent) {
+        this.state.mouse_down = false
+        this.groot.releasePointerCapture(ev.pointerId)
     }
 }
-*/
-
-// groot.onpointerdown = (ev: PointerEvent) => {
-//     // Steal pointer and bind release event
-//     MOUSE_DOWN = true
-//     groot.setPointerCapture(ev.pointerId)
-//     last_x = ev.screenX
-//     last_y = ev.screenY
-// }
-// groot.onpointerup = (ev: PointerEvent) => {
-//     MOUSE_DOWN = false
-//     // groot.releasePointerCapture(ev.pointerId)
-// }
-
-// groot.onpointermove = (ev: PointerEvent) => {
-//     if (!MOUSE_DOWN) {
-//         return
-//     }
-//     // calculate manually instead of using `ev.movement[XY]` due to what appears to be Firefox bug on touchscreen devices
-//     let dx = ev.screenX - last_x
-//     let dy = ev.screenY - last_y
-
-//     go.rotate(dx / 1000 * ENV.MOUSE_SCALE_FACTOR, dy / 1000 * ENV.MOUSE_SCALE_FACTOR)
-//     last_x = ev.screenX
-//     last_y = ev.screenY
-// }
-// groot.onpointercancel = (ev: PointerEvent) => {
-//     groot.releasePointerCapture(ev.pointerId)
-// }
-
-
 
